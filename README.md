@@ -21,7 +21,7 @@
 
 <br/>
 
-> 🎓 Final Year CSE Project — Built entirely from scratch  
+> 🎓 Built entirely from scratch  
 > Detects, classifies, and auto-responds to cyber attacks in real time
 
 </div>
@@ -292,7 +292,7 @@ docker compose exec soc_backend python backend/tests/test_api.py
 
 ## 👤 Author
 
-**Varun P V** — Final Year CSE Student  
+**Varun P V** —  CSE Student  
 
 [![GitHub](https://img.shields.io/badge/GitHub-Varunpv2005-181717?style=flat-square&logo=github)](https://github.com/Varunpv2005)
 
