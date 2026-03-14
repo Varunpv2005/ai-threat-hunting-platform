@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Node / frontend build artefacts
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Secrets — never bake into an image
+.env
+*.pem
+*.key
+
+# Large data / model files (mounted as volumes instead)
+data/
+*.pkl
+*.joblib
+
+# OS
+.DS_Store
+Thumbs.db

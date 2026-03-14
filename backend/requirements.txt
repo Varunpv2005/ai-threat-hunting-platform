@@ -1,0 +1,36 @@
+# ─── Web framework ────────────────────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1          # includes httptools + uvloop for performance
+python-multipart==0.0.12           # file upload / form parsing
+
+# ─── Data validation ──────────────────────────────────────────────────────────
+pydantic==2.10.3
+pydantic-settings==2.6.1           # settings from env vars / .env file
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+asyncpg==0.30.0                    # async PostgreSQL driver
+sqlalchemy[asyncio]==2.0.36        # ORM + async engine
+alembic==1.14.0                    # schema migrations
+
+# ─── Cache / message broker ───────────────────────────────────────────────────
+redis[hiredis]==5.2.1              # Redis client with C extension
+
+# ─── ML / data science ────────────────────────────────────────────────────────
+scikit-learn==1.6.0
+numpy==1.26.4                      # pinned for binary compat with sklearn
+pandas==2.2.3
+joblib==1.4.2                      # model serialization
+
+# ─── Elasticsearch (optional — loaded when ES_URL is set) ─────────────────────
+elasticsearch[async]==8.16.0
+
+# ─── HTTP client ──────────────────────────────────────────────────────────────
+httpx==0.28.1                      # used for inter-service health checks
+
+# ─── Observability ────────────────────────────────────────────────────────────
+structlog==24.4.0                  # structured JSON logging
+
+# ─── Dev/test extras (not installed in production image) ──────────────────────
+# pytest==8.3.4
+# pytest-asyncio==0.24.0
+# httpx==0.28.1
