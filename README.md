@@ -1,28 +1,31 @@
-::: {align="center"}
-`<img src="https://img.shields.io/badge/🛡️_SOC-SENTINEL-00ff88?style=for-the-badge&labelColor=080c10&color=00ff88" alt="SOC Sentinel"/>`{=html}
+<div align="center">
 
-# AI Threat Hunting & Incident Response Platform
+<img src="https://img.shields.io/badge/%F0%9F%9B%A1%EF%B8%8F_SOC-SENTINEL-00ff88?style=for-the-badge&labelColor=080c10&color=00ff88" alt="SOC Sentinel"/>
 
-**An ML-powered security operations platform for behavioural threat
-detection, incident correlation, and automated response orchestration.**
+AI Threat Hunting & Incident Response Platform
 
-```{=html}
-<p>
-```
-`<img src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>`{=html}
-`<img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"/>`{=html}
-`<img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React"/>`{=html}
-`<img src="https://img.shields.io/badge/scikit--learn-ML-F7931E?style=flat-square&logo=scikitlearn&logoColor=white" alt="scikit-learn"/>`{=html}
-`<img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/>`{=html}
-`<img src="https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis"/>`{=html}
-`<img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>`{=html}
-`<img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License"/>`{=html}
-```{=html}
-</p>
-```
-```{=html}
-<!-- Keep this image path if the screenshot exists in your repository. -->
-```
+An ML-powered security operations platform for behavioural threat detection, incident correlation, and automated response orchestration.
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+
+
+
+<br/>
+
+Built entirely from scratch
+Detects, classifies, and auto-responds to cyber attacks in real time
+
+</div>
 ![SOC Dashboard](screenshots/dashboard.png)
 
 **Detect. Investigate. Respond.**
