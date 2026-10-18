@@ -28,286 +28,652 @@
 
 ---
 
-## 🔥 What makes this different
+Overview
 
-Most security tools just alert you. **This one fights back.**
+Traditional security monitoring often produces large volumes of alerts that analysts must investigate individually. This project explores how machine learning, behavioural threat classification, incident correlation, and Security Orchestration, Automation and Response (SOAR) can work together to streamline that workflow.
 
-| Capability | What it does |
-|---|---|
-| 🧠 **ML Detection** | IsolationForest trained on 5,000 events scores every log 0–100 for anomalousness |
-| 🎯 **Threat Classification** | 37 behavioural features classify attacks into 6 categories with MITRE ATT&CK mapping |
-| ⚡ **SOAR Automation** | 10 response rules fire automatically — block IP, disable user, quarantine host |
-| 🔗 **Incident Correlation** | Groups individual threats into campaigns and detects multi-stage attacks |
-| 🗺️ **Global Threat Map** | Live world map showing attacker origins with pulsing markers |
-| 📊 **SOC Dashboard** | Real-time React dashboard with Chart.js — timeline, severity, categories |
+The platform processes log events, assigns anomaly scores, identifies suspicious behaviour, correlates related threats, and evaluates response rules. A React-based Security Operations Center (SOC) dashboard presents the results in an interactive interface.
 
----
+Key capabilities
 
-## 🏗️ Architecture
+Capability
 
-```
-                    ┌─────────────────────────────┐
-  Browser           │      Docker Network          │
-    │               │                              │
-    ▼ :3000         │                              │
-  ┌─────────────┐   │   ┌────────────────────┐    │
-  │   React     │───┼──▶│   FastAPI :8000    │    │
-  │  Dashboard  │   │   │                    │    │
-  │  Chart.js   │   │   │  IsolationForest   │    │
-  │  Leaflet.js │   │   │  ThreatClassifier  │    │
-  └─────────────┘   │   │  SOAR RuleEngine   │    │
-                    │   │  IncidentCorrelator│    │
-                    │   └────────┬───────────┘    │
-                    │            │                 │
-                    │   ┌────────┴────────┐        │
-                    │   │                 │        │
-                    │ postgres:5432   redis:6379    │
-                    │ (logs·threats   (cache·      │
-                    │  ·alerts)        cooldowns)  │
-                    └─────────────────────────────┘
-```
+Implementation
 
----
+Anomaly detection
 
-## 🚀 Quick Start
+Isolation Forest model trained on 5,000 synthetic normal events
 
-```bash
-# 1. Clone
+Behavioural analysis
+
+37 engineered features for identifying suspicious activity
+
+Threat classification
+
+Rule-based classification across six attack scenarios
+
+Threat intelligence mapping
+
+MITRE ATT&CK technique references
+
+Response orchestration
+
+Rule engine with 10 response rules
+
+Incident correlation
+
+Groups related threats into potential campaigns
+
+Geographic visualization
+
+Leaflet-based map for displaying threat-origin information
+
+SOC monitoring
+
+React dashboard with Chart.js visualizations
+
+Data infrastructure
+
+PostgreSQL for persistence and Redis for caching and cooldowns
+
+Deployment
+
+Docker Compose with separate application services
+
+System Architecture
+
+The platform uses a containerized architecture that separates the user interface, API, detection pipeline, and data infrastructure.
+
+flowchart TB
+    U["Security Analyst"]
+    subgraph NET["Docker Compose Network"]
+        FE["React 18 Dashboard<br/>Chart.js · Leaflet"]
+        API["FastAPI Backend<br/>REST API"]
+        ML["Detection Engine<br/>Isolation Forest"]
+        TC["Threat Classifier<br/>37 Behavioural Features"]
+        COR["Incident Correlator"]
+        SOAR["SOAR Rule Engine<br/>10 Response Rules"]
+        PG[("PostgreSQL 16<br/>Logs · Threats · Alerts")]
+        RD[("Redis 7<br/>Cache · Cooldowns")]
+    end
+
+    U --> FE
+    FE <-->|"HTTP / JSON"| API
+    API --> ML
+    ML --> TC
+    TC --> COR
+    TC --> SOAR
+    API <--> PG
+    API <--> RD
+    COR --> PG
+    SOAR --> PG
+
+    classDef frontend fill:#dbeafe,stroke:#2563eb,color:#172554
+    classDef backend fill:#d1fae5,stroke:#059669,color:#064e3b
+    classDef data fill:#fef3c7,stroke:#d97706,color:#78350f
+    class FE frontend
+    class API,ML,TC,COR,SOAR backend
+    class PG,RD data
+
+Component responsibilities
+
+Frontend: Displays threats, severity distributions, timelines, alerts, and geographic visualizations.
+
+API layer: Accepts incoming events, exposes threat and alert endpoints, and coordinates backend operations.
+
+ML pipeline: Converts log events into behavioural features and evaluates anomalous activity.
+
+Incident correlator: Connects related threat events to support investigation of multi-stage activity.
+
+SOAR engine: Evaluates response rules and invokes the corresponding response actions.
+
+PostgreSQL: Persists security events, detected threats, and alert information.
+
+Redis: Supports caching and cooldown mechanisms used by the application.
+
+Machine Learning & Threat Detection
+
+The detection pipeline combines unsupervised anomaly detection with a rule-based threat classifier.
+
+flowchart TD
+    A["Raw Security Log Events"]
+    B["Feature Engineering<br/>37 Behavioural Features"]
+    C["Isolation Forest<br/>Anomaly Detection"]
+    D["Anomaly Score<br/>0–100"]
+    E["Threat Classification<br/>Six Attack Categories"]
+    F["MITRE ATT&CK Mapping"]
+    G["Incident Correlation"]
+    H["SOAR Rule Evaluation"]
+    I["Alerts · Dashboard · Response Actions"]
+
+    A --> B --> C --> D --> E
+    E --> F
+    E --> G
+    E --> H
+    F --> I
+    G --> I
+    H --> I
+
+    classDef input fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b
+    classDef detect fill:#dbeafe,stroke:#2563eb,color:#172554
+    classDef respond fill:#d1fae5,stroke:#059669,color:#064e3b
+    class A,B input
+    class C,D,E,F detect
+    class G,H,I respond
+
+1. Feature engineering
+
+The pipeline extracts 37 behavioural features from security events. Examples include:
+
+Failed-login rates and authentication patterns
+
+Password-spray indicators and unique-user counts
+
+Sensitive-file access and bytes read
+
+Request timing and access frequency
+
+Cyclical time features such as hour_sin and hour_cos
+
+These features provide the numerical representation used by the detection pipeline.
+
+2. Isolation Forest anomaly detection
+
+The Isolation Forest model learns patterns from a training dataset containing 5,000 synthetic normal events. It is used to identify events that deviate from those learned patterns.
+
+The application converts its anomaly output into a score on a 0–100 scale, with higher scores indicating greater anomalousness according to the implemented scoring logic.
+
+3. Behavioural threat classification
+
+A rule-based classifier assigns suspicious events to attack categories and associates relevant techniques with MITRE ATT&CK.
+
+Attack category
+
+Example ATT&CK technique
+
+Brute force
+
+T1110.001 — Password Guessing
+
+Privilege escalation
+
+T1548.003 — Sudo and Sudo Caching
+
+Data exfiltration
+
+T1005 — Data from Local System
+
+Password spray
+
+T1110.003 — Password Spraying
+
+Suspicious login
+
+Context-dependent technique mapping
+
+Automated scanner
+
+Context-dependent technique mapping
+
+Technique associations should be interpreted in the context of the observed behaviour; they are not proof that an attack occurred.
+
+4. Detection evaluation
+
+The following are the reported results from the project's synthetic test scenarios.
+
+Attack scenario
+
+Average anomaly score
+
+Reported severity
+
+Brute force
+
+100.0
+
+Critical
+
+Privilege escalation
+
+98.5
+
+Critical
+
+Data exfiltration
+
+86.4
+
+Critical
+
+Suspicious login
+
+86.1
+
+High
+
+Password spray
+
+79.3
+
+High
+
+Automated scanner
+
+68.7
+
+Medium
+
+Reported ROC-AUC: 0.89 on the synthetic test set.
+
+These values describe the current synthetic evaluation, not independently validated real-world detection performance. The results depend on the dataset, feature engineering, scoring calibration, and evaluation methodology.
+
+SOAR: Automated Response Orchestration
+
+The response engine evaluates threat conditions and selects configured actions. The objective is to reduce repetitive manual response work and provide a consistent workflow for security events.
+
+Threat scenario
+
+Example trigger
+
+Configured response
+
+Brute force
+
+More than 20 failed logins
+
+Block IP, disable user, send alert
+
+Privilege escalation
+
+Administrative activity spike and sensitive-file access
+
+Disable user, quarantine host, rotate credentials
+
+Data exfiltration
+
+More than 5 MB read with sensitive-data indicators
+
+Block IP, rate-limit user
+
+Password spray
+
+More than five unique users from one IP
+
+Block IP, send alert
+
+Suspicious login
+
+High-risk country and missing MFA
+
+Enforce MFA, disable user
+
+Automated scanner
+
+Requests occurring at intervals under one second
+
+Rate-limit IP to two requests per minute
+
+The project defines 10 response rules and eight SOAR action types.
+
+Response workflow
+
+Receive and analyze a security event.
+
+Classify the detected behaviour and determine its severity.
+
+Evaluate applicable response rules.
+
+Invoke the configured response actions.
+
+Record the resulting alert and response information for investigation.
+
+Deployment note: Response actions such as blocking an IP, disabling an account, or quarantining a host require the appropriate integrations and permissions to affect external infrastructure. Validate which actions are simulated, logged, or connected to real enforcement systems in the current deployment before treating them as operational controls.
+
+Incident Correlation
+
+Individual alerts do not always reveal the complete picture. The incident correlator groups related threat events into potential campaigns, helping analysts investigate sequences of suspicious activity.
+
+For example, a sequence involving repeated authentication failures, a suspicious login, privilege escalation, and sensitive-file access may warrant investigation as a related incident.
+
+Correlation supports investigation; a shared IP address or temporal relationship alone does not establish that multiple events belong to the same attacker.
+
+SOC Dashboard
+
+The React dashboard provides a unified view of detected threats and security activity.
+
+Threat overview: View current threat counts and security statistics.
+
+Timeline analysis: Explore changes in detected activity over time.
+
+Severity distribution: Compare critical, high, and medium threats.
+
+Threat categorization: Understand the distribution of attack types.
+
+Geographic visualization: Explore threat-origin data on a world map.
+
+Alert management: Review alerts and acknowledge or resolve them.
+
+Rule visibility: Inspect configured response rules and their status.
+
+The interface uses React 18, Chart.js, Leaflet, Vite, and Nginx.
+
+API Reference
+
+The FastAPI service exposes REST endpoints for event ingestion, threat investigation, alert management, and attack simulation.
+
+Method
+
+Endpoint
+
+Purpose
+
+GET
+
+/api/v1/stats
+
+Retrieve dashboard statistics
+
+GET
+
+/api/v1/threats
+
+Retrieve detected threats
+
+GET
+
+/api/v1/alerts
+
+Retrieve security alerts
+
+GET
+
+/api/v1/rules
+
+Retrieve response rules
+
+POST
+
+/api/v1/ingest
+
+Ingest raw log events
+
+POST
+
+/api/v1/simulate_attack
+
+Simulate a supported attack scenario
+
+POST
+
+/api/v1/alerts/{id}/acknowledge
+
+Acknowledge an alert
+
+POST
+
+/api/v1/alerts/{id}/resolve
+
+Resolve an alert
+
+Interactive API documentation is available at /docs when the backend is running.
+
+Example: Simulating an attack
+
+POST /api/v1/simulate_attack
+Content-Type: application/json
+
+{
+  "attack_type": "brute_force",
+  "geo_country": "RU",
+  "intensity": "high",
+  "dry_run": true
+}
+
+The example uses dry_run: true to illustrate a safer simulation workflow. Supported attack types include brute force, privilege escalation, data exfiltration, password spray, suspicious login, and automated scanning.
+
+Use only authorized test environments and verify the API's actual simulation and dry-run semantics before testing response behaviour.
+
+Technology Stack
+
+Layer
+
+Technologies
+
+Backend
+
+Python 3.11, FastAPI, Uvicorn
+
+Machine learning
+
+scikit-learn, pandas, NumPy, joblib
+
+Classification
+
+Custom rule-based threat classifier
+
+Frontend
+
+React 18, Vite, Chart.js, Leaflet
+
+Database
+
+PostgreSQL 16, SQLAlchemy, asyncpg
+
+Caching
+
+Redis 7
+
+Infrastructure
+
+Docker, Docker Compose, Nginx
+
+Security concepts
+
+MITRE ATT&CK, anomaly detection, SOAR, SOC workflows
+
+Project Structure
+
+ai-threat-hunting-platform/
+├── backend/
+│   ├── api/
+│   │   ├── main.py
+│   │   ├── store.py
+│   │   └── schemas.py
+│   ├── ml/
+│   │   ├── anomaly/
+│   │   └── classifier/
+│   ├── incident_response/
+│   │   ├── actions.py
+│   │   ├── rule_engine.py
+│   │   └── correlator.py
+│   ├── log_simulator/
+│   └── tests/
+├── dashboard/
+│   └── src/
+│       └── SOCDashboard.jsx
+├── docker/
+│   ├── backend.Dockerfile
+│   ├── frontend.Dockerfile
+│   ├── nginx.conf
+│   └── postgres/
+│       └── init.sql
+├── docker-compose.yml
+├── .env.example
+├── Makefile
+└── README.md
+
+Getting Started
+
+Prerequisites
+
+Docker Desktop or Docker Engine
+
+Docker Compose
+
+Git
+
+1. Clone the repository
+
 git clone https://github.com/Varunpv2005/ai-threat-hunting-platform.git
 cd ai-threat-hunting-platform
 
-# 2. Configure
+2. Configure environment variables
+
 cp .env.example .env
 
-# 3. Launch
+Review .env and configure the required database credentials, application secret, and model-training settings.
+
+3. Build and launch
+
 docker compose up -d --build
 
-# 4. Wait for model training (~30s)
+4. Check the backend
+
 docker compose logs -f backend
-# Look for: INFO  API ready.
-```
 
-**Open:** http://localhost:3000 — SOC Dashboard  
-**Open:** http://localhost:8000/docs — Interactive API
+Wait until model initialization completes and the API reports that it is ready. If the service is named soc_backend in your Compose configuration, use that service name in the corresponding commands.
 
----
+5. Open the application
 
-## 🧠 ML Pipeline
+Service
 
-```
-Raw Log Event
-      │
-      ▼
-Feature Engineering ──── 37 behavioural features
-(pandas + numpy)         user_failure_rate, ip_spray_flag,
-                         log_bytes_read, hour_sin/cos, etc.
-      │
-      ▼
-IsolationForest ──────── Anomaly Score [0–100]
-(unsupervised ML)        Trained on 5,000 normal events
-      │
-      ▼
-ThreatClassifier ──────── Category + Confidence
-(rule-based)              brute_force → T1110.001
-                          priv_esc   → T1548.003
-                          exfiltration → T1005
-      │
-      ▼
-SOAR RuleEngine ──────── Automated Response
-(10 rules)                block_ip / disable_user /
-                          quarantine_host / enforce_mfa
-```
+URL
 
-**Detection results on synthetic test data:**
+SOC dashboard
 
-| Attack Type | Avg Anomaly Score | Severity |
-|---|---|---|
-| Brute Force | **100.0** | 🔴 CRITICAL |
-| Privilege Escalation | **98.5** | 🔴 CRITICAL |
-| Data Exfiltration | **86.4** | 🔴 CRITICAL |
-| Password Spray | **79.3** | 🟠 HIGH |
-| Suspicious Login | **86.1** | 🟠 HIGH |
-| Automated Scanner | **68.7** | 🟡 MEDIUM |
+http://localhost:3000
 
-**ROC-AUC: 0.89** on synthetic test set
+Interactive API documentation
 
----
+http://localhost:8000/docs
 
-## ⚡ SOAR Response Rules
+API OpenAPI schema
 
-When a threat is detected the rule engine fires automatically — no human needed:
+http://localhost:8000/openapi.json
 
-| Attack | Trigger Condition | Actions |
-|---|---|---|
-| 🔴 Brute Force | `failed_logins > 20` | `block_ip(24h)` + `disable_user` + `send_alert` |
-| 🔴 Privilege Escalation | `admin_spike + sensitive_files` | `disable_user` + `quarantine_host` + `rotate_credentials` |
-| 🔴 Data Exfiltration | `bytes_read > 5MB + sensitive` | `block_ip(72h)` + `rate_limit_user` |
-| 🟠 Password Spray | `unique_users > 5 from 1 IP` | `block_ip(48h)` + `send_alert` |
-| 🟠 Suspicious Login | `high_risk_country + no_MFA` | `enforce_mfa` + `disable_user` |
-| 🟡 Automated Scanner | `request_rate < 1s` | `rate_limit_ip(2rpm)` |
+The URLs assume the default local port mappings are configured in docker-compose.yml.
 
----
+Testing
 
-## 🗺️ Supported Attack Scenarios
+The project includes tests for API behaviour and SOAR rule evaluation.
 
-```bash
-# Simulate any attack type via API
-POST /api/v1/simulate_attack
+Run the API integration test module:
 
-{
-  "attack_type": "brute_force",        # or privilege_escalation
-  "geo_country": "RU",                 #    data_exfiltration
-  "intensity": "high",                 #    suspicious_login
-  "dry_run": false                     #    password_spray
-}                                      #    automated_scanner
-```
+docker compose exec soc_backend \
+  python backend/tests/test_api.py
 
----
+Run the rule-engine test suite using the corresponding test module or command defined in your repository.
 
-## 📡 API Reference
+The reported test results are:
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/stats` | Dashboard statistics |
-| `GET` | `/api/v1/threats` | All detected threats |
-| `GET` | `/api/v1/alerts` | Security alerts |
-| `GET` | `/api/v1/rules` | Active SOAR rules |
-| `POST` | `/api/v1/simulate_attack` | Simulate an attack |
-| `POST` | `/api/v1/ingest` | Ingest raw log events |
-| `POST` | `/api/v1/alerts/{id}/acknowledge` | Acknowledge alert |
-| `POST` | `/api/v1/alerts/{id}/resolve` | Resolve alert |
+API integration: 40 passed
 
-Full interactive docs: **http://localhost:8000/docs**
+SOAR rule engine: 57 passed
 
----
+Total: 97 reported passing tests
 
-## 🛠️ Tech Stack
+Re-run the complete test suite after making changes. Test counts indicate coverage of implemented behaviours, not proof that every production failure mode has been addressed.
 
-<table>
-<tr>
-<td><b>Backend</b></td>
-<td>Python 3.11 · FastAPI · uvicorn · asyncpg · SQLAlchemy</td>
-</tr>
-<tr>
-<td><b>ML</b></td>
-<td>scikit-learn · IsolationForest · pandas · numpy · joblib</td>
-</tr>
-<tr>
-<td><b>Frontend</b></td>
-<td>React 18 · Chart.js · Leaflet.js · Vite · nginx</td>
-</tr>
-<tr>
-<td><b>Database</b></td>
-<td>PostgreSQL 16 · Redis 7</td>
-</tr>
-<tr>
-<td><b>DevOps</b></td>
-<td>Docker · Docker Compose · multi-stage builds · health checks</td>
-</tr>
-<tr>
-<td><b>Security</b></td>
-<td>MITRE ATT&CK · SOAR · IDS/IPS concepts · SOC workflows</td>
-</tr>
-</table>
+Environment Configuration
 
----
+Variable
 
-## 📁 Project Structure
+Example default
 
-```
-ai-threat-hunting-platform/
-│
-├── backend/
-│   ├── api/
-│   │   ├── main.py              # FastAPI app — 9 endpoints
-│   │   ├── store.py             # Data store + ML pipeline
-│   │   └── schemas.py           # Request/response models
-│   │
-│   ├── ml/
-│   │   ├── anomaly/             # IsolationForest detector
-│   │   └── classifier/          # ThreatClassifier + 37 features
-│   │
-│   ├── incident_response/
-│   │   ├── actions.py           # 8 SOAR action types
-│   │   ├── rule_engine.py       # 10 response rules
-│   │   └── correlator.py        # Incident + campaign detection
-│   │
-│   ├── log_simulator/           # 6 attack scenario generators
-│   └── tests/                   # 97 automated tests ✅
-│
-├── dashboard/
-│   └── src/
-│       └── SOCDashboard.jsx     # Full React dashboard
-│
-├── docker/
-│   ├── backend.Dockerfile       # Two-stage Python build
-│   ├── frontend.Dockerfile      # Node build + nginx serve
-│   ├── nginx.conf               # SPA routing + /api proxy
-│   └── postgres/init.sql        # Schema + seed data
-│
-├── docker-compose.yml           # All 4 services
-├── .env.example                 # Configuration template
-├── Makefile                     # Developer shortcuts
-└── README.md
-```
+Purpose
 
----
+POSTGRES_PASSWORD
 
-## 🧪 Tests
+socpassword
 
-```bash
-# Run full test suite inside container
-docker compose exec soc_backend python backend/tests/test_api.py
+PostgreSQL authentication
 
-# Output:
-# 40 tests | 40 passed | 0 failed   (API integration)
-# 57 tests | 57 passed | 0 failed   (Rule engine)
-```
+REDIS_PASSWORD
 
----
+redispass
 
-## ⚙️ Environment Variables
+Redis authentication
 
-| Variable | Default | Notes |
-|---|---|---|
-| `POSTGRES_PASSWORD` | `socpassword` | ⚠️ Change in production |
-| `REDIS_PASSWORD` | `redispass` | ⚠️ Change in production |
-| `SECRET_KEY` | *(change me)* | Run `openssl rand -hex 32` |
-| `TRAIN_ON_STARTUP` | `true` | Train ML model at boot |
-| `N_TRAIN_EVENTS` | `5000` | Training set size |
-| `WORKERS` | `2` | Uvicorn worker processes |
+SECRET_KEY
 
----
+Placeholder
 
-## 🔮 Roadmap
+Application secret
 
-- [ ] XGBoost supervised classifier (ROC-AUC comparison)
-- [ ] JWT authentication + role-based access
-- [ ] WebSocket real-time alert push
-- [ ] Elasticsearch SIEM integration
-- [ ] Slack / email notifications
-- [ ] Cloud deployment (Railway / AWS)
+TRAIN_ON_STARTUP
 
----
+true
 
-## 👤 Author
+Enable model training at startup
 
-**Varun P V** —  CSE Student  
+N_TRAIN_EVENTS
 
-[![GitHub](https://img.shields.io/badge/GitHub-Varunpv2005-181717?style=flat-square&logo=github)](https://github.com/Varunpv2005)
+5000
 
----
+Number of training events
 
-## 📄 License
+WORKERS
 
-MIT License — free to use, modify and distribute.
+2
 
----
+Uvicorn worker configuration
 
-<div align="center">
+Security: The displayed defaults are for local development only. Use strong, unique secrets, restrict network exposure, and configure production-grade authentication and authorization before deploying outside a trusted test environment.
 
-**If this project helped you, please ⭐ star the repo**
+Current Limitations & Roadmap
 
-*Built with 🛡️ for cybersecurity education*
+The following are planned enhancements rather than features to assume are already implemented.
 
+Evaluate a supervised XGBoost classifier against the existing baseline.
+
+Add JWT authentication and role-based access control.
+
+Implement WebSocket-based real-time alert delivery.
+
+Integrate with Elasticsearch or another SIEM platform.
+
+Add Slack and email notifications.
+
+Deploy to a cloud environment with production security controls.
+
+Evaluate detection quality on representative, independently labelled security data.
+
+Add integration tests for external response actions and failure recovery.
+
+Learning Outcomes
+
+This project brings together several practical engineering areas:
+
+Designing REST APIs with FastAPI.
+
+Building a behavioural anomaly-detection pipeline with scikit-learn.
+
+Engineering features from security event data.
+
+Modelling and persisting security events using PostgreSQL.
+
+Implementing caching and cooldown mechanisms with Redis.
+
+Building interactive monitoring interfaces using React.
+
+Containerizing multi-service applications with Docker Compose.
+
+Applying MITRE ATT&CK concepts to threat classification and incident investigation.
+
+Designing rule-based security response workflows.
+
+Author
+
+Varun P V
+Computer Science and Engineering Student
+
+GitHub: @Varunpv2005
+
+Project repository: AI Threat Hunting & Incident Response Platform
+
+License
+
+This project is licensed under the MIT License. See the LICENSE file for the applicable terms.
+
+Built as a cybersecurity engineering project exploring the integration of machine learning, threat analysis, and security response automation.
 </div>
