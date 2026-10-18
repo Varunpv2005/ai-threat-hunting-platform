@@ -62,7 +62,7 @@ The original high-level architecture is retained below, with the
 application components and data stores made explicit. The Mermaid
 diagram is rendered by GitHub when the code fence is preserved exactly.
 
-``` mermaid
+```mermaid
 flowchart TB
     Analyst["Security Analyst / Browser"]
 
@@ -114,7 +114,7 @@ flowchart TB
 
 ## Detection Pipeline
 
-``` mermaid
+```mermaid
 flowchart LR
     A["Raw Log Event"] --> B["Feature Engineering<br/>37 Features"]
     B --> C["Isolation Forest"]
@@ -227,6 +227,39 @@ The project defines 10 response rules and eight action types.
 > the relevant integrations, permissions, and enforcement mechanisms are
 > implemented. Verify which actions in this repository are simulated
 > versus operational.
+
+### SOAR Engine Workflow
+
+This diagram shows the intended decision flow from a detected threat to a configured response. Actual enforcement depends on the integrations and permissions available in the deployment.
+
+```mermaid
+flowchart TD
+    A["Detected Threat"] --> B["Evaluate Threat Type, Severity and Context"]
+    B --> C{"Does a SOAR Rule Match?"}
+    C -- "No" --> D["Record Event for Analyst Review"]
+    C -- "Yes" --> E["Select Configured Response Action"]
+    E --> F{"Action Mode"}
+    F -- "Simulation / Dry Run" --> G["Log Proposed Action"]
+    F -- "Integrated Enforcement" --> H["Execute Authorized Action"]
+    G --> I["Record Outcome and Create / Update Alert"]
+    H --> I
+    D --> J["SOC Dashboard / Investigation"]
+    I --> J
+
+    classDef event fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b
+    classDef decision fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef action fill:#d1fae5,stroke:#059669,color:#064e3b
+    class A,B,D,J event
+    class C,F decision
+    class E,G,H,I action
+```
+
+### What the SOAR diagram adds
+
+- **Rule evaluation:** Checks whether a detected event matches a configured response rule.
+- **Action selection:** Chooses the response defined for the matching scenario.
+- **Safe handling:** Distinguishes a simulated or logged action from an integrated enforcement action.
+- **Audit trail:** Records the outcome so analysts can review what happened.
 
 ## Incident Correlation
 
@@ -463,6 +496,17 @@ production deployment.
 -   Interactive React-based security visualizations.
 -   Multi-service containerization with Docker Compose.
 
+## End-to-End Workflow
+
+1. **Ingest:** Security events enter through the API or supported simulation workflow.
+2. **Analyse:** The detection pipeline extracts behavioural features and computes an anomaly score.
+3. **Classify:** Rule-based logic assigns a supported threat category and relevant ATT&CK references.
+4. **Correlate:** Related events are grouped to help analysts investigate possible multi-stage activity.
+5. **Respond:** The SOAR engine evaluates configured rules and records or invokes the selected action.
+6. **Review:** Threats, alerts, and response outcomes are presented in the SOC dashboard.
+
+This workflow describes the platform's intended processing path. Verify the current implementation and integrations before describing any response as live enforcement.
+
 ## Author
 
 **Varun P V** · Computer Science and Engineering Student
@@ -478,11 +522,10 @@ This project is distributed under the MIT License. See
 
 ------------------------------------------------------------------------
 
-```{=html}
 <p align="center">
 ```
-`<sub>`{=html}Built to explore machine learning, threat hunting, and
-security response automation.`</sub>`{=html}
-```{=html}
+<sub>Built to explore machine learning, threat hunting, and
+security response automation.</sub>
 </p>
 ```
+
